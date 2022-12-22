@@ -31,8 +31,8 @@ let starSprite;
 let rocketSprite;
 let container;
 
-//sprite animato creato con https://www.codeandweb.com/free-sprite-sheet-packer
-//(json hash)
+//sprite animato creato con https://www.codeandweb.com/free-sprite-sheet-packer (json hash)
+//per calcolare i bounding box degli sprite è utile http://www.spritecow.com/
 Assets.load('assets/animated.json').then( jj => {
 
     const spritesheet = new Spritesheet(

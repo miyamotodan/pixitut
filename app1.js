@@ -193,14 +193,30 @@ function render(alpha) {
 
 
 //PIXI 7
-var spriteTexture;
+var spritesheet;
 
+/*
 Assets.load('assets/spritesheet.png').then( texture => {
     const rocket_frm = new Rectangle(25, 25, 120, 150);
     texture.frame = rocket_frm;
 	spriteTexture = texture;
 	requestAnimationFrame(step);
-})
+});
+*/
+
+Assets.load('assets/spritesheet.json').then( jj => {
+    spritesheet = new Spritesheet(
+        BaseTexture.from("assets/"+jj.data.meta.image),
+        jj.data
+    );
+    
+    // Generate all the Textures asynchronously
+    spritesheet.parse().then( () => {
+		//tutte le textures pronte
+		requestAnimationFrame(step);
+    });
+});
+
 
 
 // Input
@@ -248,12 +264,12 @@ document.addEventListener('keydown',(ev) => {
 		world.setGravity(g);
 	}
 	if(ev.code == 'Space') {
-		var r = randrange(10,30)
+		var r = randrange(10,40)
 		var o = new GameObject({
 			world: world,
 			position: {x:200,y:200},
 			angle: Math.random(),
-			angularVelocity: randrange(1,5),
+			angularVelocity: randrange(1,3),
 			radius: r,
 			type: 'dynamic',
 			shape: 'circle',
@@ -355,7 +371,7 @@ document.addEventListener('keydown',(ev) => {
 class GameObject {
 	constructor(opts) {
 		// If no texture is supplied we become a solid shape.
-		this.sprite = typeof opts.texture == 'string' ? new Sprite(spriteTexture) : new Graphics();		
+		this.sprite = typeof opts.texture == 'string' ? new Sprite(spritesheet.textures["sprite0"+randrange(1,4)]) : new Graphics();		
 		this.debug = new PIXI.Graphics();			
 		this.container = new PIXI.Container();
 		this.shapeType = opts.shape;
@@ -425,7 +441,8 @@ class GameObject {
 		if(this.sprite instanceof PIXI.Sprite) {
 			this.sprite.pivot.x = this.sprite.width / 2;
 			this.sprite.pivot.y = this.sprite.height / 2;
-			this.sprite.scale.set(opts.radius*MetersPerPixel*(PixelsPerMeter/12),opts.radius*MetersPerPixel*(PixelsPerMeter/12));
+			//this.sprite.scale.set(opts.radius*MetersPerPixel*(PixelsPerMeter/12),opts.radius*MetersPerPixel*(PixelsPerMeter/12));
+			this.sprite.scale.set(opts.radius*MetersPerPixel,opts.radius*MetersPerPixel);
 		}
 		// Container is our main interface to PIXI.
 		this.container.pivot.x = this.container.width / 2;
