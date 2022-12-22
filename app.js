@@ -102,6 +102,26 @@ Assets.load('assets/spritesheet.png').then( texture => {
 
 })
     
+const explImages = [
+    'assets/Explosion/explosion00.png',
+    'assets/Explosion/explosion01.png',
+    'assets/Explosion/explosion02.png',
+    'assets/Explosion/explosion03.png',
+    'assets/Explosion/explosion04.png',
+    'assets/Explosion/explosion05.png',
+    'assets/Explosion/explosion06.png',
+    'assets/Explosion/explosion07.png',
+    'assets/Explosion/explosion08.png',
+];
+const expTextureArray = [];
+
+for (let i = 0; i < 9; i++)
+{
+    const texture = Texture.from(explImages[i]);
+    expTextureArray.push(texture);
+}
+const expAnimatedSprite = new AnimatedSprite(expTextureArray);
+
 const loop= (delta) => {
 
     starSprite.anchor.set(0.5,0.5);
@@ -171,6 +191,22 @@ const setup = () => {
     starSprite.on('pointerdown', () => {
         starSprite.scale.x += 0.1;
         starSprite.scale.y += 0.1;
+        console.log(starSprite.scale.x,starSprite.scale.y)
+        if (starSprite.scale.x > 2) {
+            expAnimatedSprite.scale.set(0.7,0.7);
+            expAnimatedSprite.anchor.set(0.5,0.5);
+            expAnimatedSprite.x = starSprite.getGlobalPosition().x ;
+            expAnimatedSprite.y = starSprite.getGlobalPosition().y;
+            app.stage.addChild(expAnimatedSprite);
+            expAnimatedSprite.play();
+            expAnimatedSprite.loop = false;
+            expAnimatedSprite.animationSpeed = 0.3;
+            expAnimatedSprite.onComplete = () => {
+                container.removeChild(starSprite);
+                app.stage.removeChild(expAnimatedSprite);
+            };
+        }
+
     })
 
     var bf = new PIXI.filters.BlurFilter();
