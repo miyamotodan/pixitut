@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "howler": "^2.2.3",
+    "pixi-viewport": "^4.38.0",
     "pixi.js": "^7.0.5",
     "planck-js": "^0.3.31"
   }
