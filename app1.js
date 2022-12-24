@@ -24,6 +24,18 @@ const Vec2 = planck.Vec2;
 const worldW = 1280;
 const worldH = 720;
 
+const style = new PIXI.TextStyle({
+    align: "center",
+    fill: "#19e1d4",
+    fontFamily: "\"Lucida Console\", Monaco, monospace",
+    fontSize: 20,
+    fontVariant: "small-caps",
+    fontWeight: "bolder",
+    lineJoin: "bevel",
+    stroke: "#161313",
+    strokeThickness: 2
+});
+
 app = new PIXI.Application({ width: worldW, height: worldH, backgroundColor: 0x000000, antialias: true, autoDensity: true, resolution: 2 });
 document.body.appendChild(app.view);
 viewport = new pixi_viewport.Viewport({
@@ -58,6 +70,8 @@ const debugLayer = new PIXI.Container();		// Outlines/planck shapes.
 stage.addChild(debugLayer);
 const uiLayer = new PIXI.Container();			// Text UI on top
 stage.addChild(uiLayer);
+const labelLayer = new PIXI.Container();	    // object's labels
+stage.addChild(labelLayer);
 const boundaryGraphics = new PIXI.Graphics();	// our stage boundaries are on their own graphics object we handle
 debugLayer.addChild(boundaryGraphics);			// in the way planck.js provides us (this is a demo afterall)
 var infoText = new PIXI.Text('', new PIXI.TextStyle({ fill: '#ffffff' }));
@@ -409,6 +423,11 @@ class GameObject {
 		// If no texture is supplied we become a solid shape.
 		this.sprite = typeof opts.texture == 'string' ? new Sprite(spritesheet.textures[opts.texture]) : new Graphics();
 		this.debug = new PIXI.Graphics();
+		
+		this.label = new PIXI.Graphics();
+		this.textlabel = new Text('', style);
+		this.label.addChild(this.textlabel);
+		
 		this.container = new PIXI.Container();
 		this.shapeType = opts.shape;
 		this.bulletCounter = 0;			// Expire our bullet flag after a short time; it's only needed for launching really.
@@ -491,10 +510,17 @@ class GameObject {
 		this.container.interactive = true;
 		this.container.buttonMode = true;
 		this.container.on('pointerdown', this.click.bind(this));
+		this.container.on('mouseover', this.mouseover.bind(this));
+		this.container.on('mouseout', this.mouseout.bind(this));
 		// Debug lines
 		this.debug.x = this.container.x = opts.position.x;
 		this.debug.y = this.container.y = opts.position.y;
 		debugLayer.addChild(this.debug);
+		// label
+		this.label.x = this.container.x = opts.position.x;
+		this.label.y = this.container.y = opts.position.y;
+		labelLayer.addChild(this.label);
+		
 		// Finally, we add ourselves to the list of game objects for future iteration.
 		gameObjects.push(this);
 	}
@@ -505,6 +531,13 @@ class GameObject {
 		// Force wake event
 		if (bulletMode) this.body.setBullet(true);
 		this.body.applyLinearImpulse(force, this.body.getWorldCenter(), true);
+	}
+	mouseover() {
+		this.textlabel.text = 'x:'+this.container.x+"y:"+this.container.y;
+		this.label.alpha = 1;
+	}
+	mouseout() {
+		this.label.alpha = 0;
 	}
 	integrate(alpha) {
 		// Interpolate or snap?
@@ -541,6 +574,10 @@ class GameObject {
 			}
 			this.debug.endFill();
 		}
+
+		//label position
+		this.label.x = this.container.x;
+		this.label.y = this.container.y;
 	}
 	update(dt) {
 		// turn off bullet mode after launch
