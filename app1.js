@@ -18,6 +18,7 @@ const TilingSprite = PIXI.TilingSprite;
 const Vec2 = planck.Vec2;
 const FrictionJoint = planck.FrictionJoint;
 const DistanceJoint = planck.DistanceJoint;
+const RopeJoint = planck.RopeJoint;
 
 // PIXI
 //const renderer = new PIXI.Renderer({ width: 1280, height: 720, backgroundColor: 0x000000 });
@@ -115,7 +116,7 @@ var timestep = 1000 / physicsSteps;			//
 var deltaTime = timestep / 1000;				// Since we're fixed, we don't need to divide constantly during simulation.
 // Settings
 var interpolation = true;					// Draw PIXI objects between physics states for smoother animation.
-var forceStrength = 50;						// How much power our bunnies posses.
+var forceStrength = 20;						// How much power our bunnies posses.
 var deleteQueued = false;					// Destroying stuff during a physics step would be crashy.
 var deleteAll = false;						// Flag to remove all objects next cycle (again, input polling it outside main loop, so we have to handle this cleanly)
 var bulletMode = false;						// Flag new objects as bullets (prevents tunneling, but is harsh on performance)
@@ -166,6 +167,7 @@ function step(t) {
 		frameTime = t - lastTime;
 		if (frameTime > 100) { // Panic! In this state, we need to start removing objects!
 			frameTime = 100;
+			//TODO:entra qui anche se si fa lo switch della finestra con ALT+TAB... non va bene
 			if (gameObjects.length) {
 				gameObjects[0].destroy();
 				gameObjects.splice(0, 1);
@@ -355,7 +357,8 @@ document.addEventListener('keydown', (ev) => {
 				world: world,
 				goa: o,
 				gob: oo,
-				label: "joint"
+				label: "joint",
+				type: "rope"
 			});
 		}
 
@@ -562,7 +565,8 @@ class GameObject {
 		this.body.applyLinearImpulse(force, this.body.getWorldCenter(), true);
 	}
 	mouseover() {
-		this.textlabel.text = 'x:'+this.container.x.toFixed(2)+" y:"+this.container.y.toFixed(2);
+		//this.textlabel.text = 'x:'+this.container.x.toFixed(2)+" y:"+this.container.y.toFixed(2);
+		this.textlabel.text = "m:"+Math.round(this.body.m_mass);
 		this.label.alpha = 1;
 	}
 	mouseout() {
@@ -621,9 +625,20 @@ class GameObject {
 	destroy() {
 		// box2d cleanup
 		this.world.destroyBody(this.body);
+
+		//related joints
+		let jtd = gameJoints.filter( j => j.goa===this || j.gob===this);
+		//console.log("joints to del:",jtd);
+		jtd.forEach( j => {
+			j.destroy();
+			gameJoints = gameJoints.filter( e => e!=j);
+		})
+		//console.log("joints:",gameJoints);
+
 		// pixi cleanup
 		this.container.destroy({ children: true });
 		this.debug.destroy();
+		this.label.destroy();
 	}
 }
 class PhysicsState {
@@ -655,21 +670,32 @@ class GameJoint {
 		this.container.addChild(this.sprite);
 		spriteLayer.addChild(this.container);
 
-		this.container.interactive = true;
-		this.container.buttonMode = true;
-		this.container.on('pointerdown', this.click.bind(this));
-		this.container.on('mouseover', this.mouseover.bind(this));
-		this.container.on('mouseout', this.mouseout.bind(this));
+		this.label.interactive = true;
+		this.label.buttonMode = true;
+		this.label.on('pointerdown', this.click.bind(this));
+		this.label.on('mouseover', this.mouseover.bind(this));
+		this.label.on('mouseout', this.mouseout.bind(this));
 		
 		// label
 		this.label.x = this.container.x;
 		this.label.y = this.container.y;
 		labelLayer.addChild(this.label);
 		
+		let j;
 		//creazione del joint
-		let j = FrictionJoint({ collideConnected : true, maxForce : 1, maxTorque : 1 }, this.goa.body, this.gob.body);
-		//let j = DistanceJoint({	bodyA: this.goa.body, localAnchorA: Vec2(0.0, 0.0), bodyB: this.gob.body, localAnchorB: Vec2(0.0, 0.0), frequencyHz: 4, dampingRatio: 0.5 });
-		
+		switch (opts.type) {
+			case "distance":
+				j = DistanceJoint({	bodyA: this.goa.body, localAnchorA: Vec2(0.0, 0.0), bodyB: this.gob.body, localAnchorB: Vec2(0.0, 0.0), frequencyHz: 4, dampingRatio: 0.5 });
+				break;
+			case "friction":
+				j = FrictionJoint({ collideConnected : true, maxForce : 1, maxTorque : 1 }, this.goa.body, this.gob.body);
+				break;
+			case "rope":
+				j = RopeJoint({	bodyA: this.goa.body, bodyB: this.gob.body, collideConnected : true, maxLength: 5 });
+				break;
+			default:
+				break;
+		}
 		this.joint = j;
 		world.createJoint(j);		
 		
@@ -680,8 +706,9 @@ class GameJoint {
 		console.log("joint click");
 	}
 	mouseover() {
-		console.log("joint over");
-		this.textlabel.text = 'x:'+this.container.x.toFixed(2)+" y:"+this.container.y.toFixed(2);
+		console.log("joint over", this.goa.textlabel.text, this.gob.textlabel.text);
+		//this.textlabel.text = 'x:'+this.container.x.toFixed(2)+" y:"+this.container.y.toFixed(2);
+		this.textlabel.text = this.goa.textlabel.text+"--"+ this.gob.textlabel.text;
 		this.label.alpha = 1;
 	}
 	mouseout() {
@@ -697,8 +724,7 @@ class GameJoint {
 		let bap = ba.getPosition();
 		let bbp = bb.getPosition();
 
-		console.log(bap,bbp);
-
+		//console.log(bap,bbp);
 		//console.log("ba",ba,"bb",bb);
 
 		this.sprite.clear();
@@ -727,8 +753,11 @@ class GameJoint {
 		
 	}
 	destroy() {
+		// box2d cleanup
+		this.world.destroyJoint(this.joint);
 		// pixi cleanup
 		this.container.destroy({ children: true });
+		this.label.destroy();
 	}
 }
 // Some helpers, just for fun.
