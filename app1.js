@@ -16,6 +16,8 @@ const TextStyle = PIXI.TextStyle;
 const Text = PIXI.Text;
 const TilingSprite = PIXI.TilingSprite;
 const Vec2 = planck.Vec2;
+const FrictionJoint = planck.FrictionJoint;
+const DistanceJoint = planck.DistanceJoint;
 
 // PIXI
 //const renderer = new PIXI.Renderer({ width: 1280, height: 720, backgroundColor: 0x000000 });
@@ -49,7 +51,7 @@ viewport = new pixi_viewport.Viewport({
 	// forceHitArea: null,                          // change the default hitArea from world size to a new value
 	// noTicker: false,                             // set this if you want to manually call update() function on each frame
 	// ticker: PIXI.Ticker.shared,                  // use this PIXI.ticker for updates
-	interaction: app.renderer.events,   // InteractionManager, available from instantiated WebGLRenderer/CanvasRenderer.plugins.interaction - used to calculate pointer position relative to canvas location on screen
+	interaction: app.renderer.events,   			// InteractionManager, available from instantiated WebGLRenderer/CanvasRenderer.plugins.interaction - used to calculate pointer position relative to canvas location on screen
 	// divWheel: null,                              // div to attach the wheel event (uses document.body as default)
 	// disableOnContextMenu: false,                 // remove oncontextmenu=() => {} from the divWheel element
 });
@@ -124,6 +126,7 @@ var world = planck.World({
 });
 
 var gameObjects = [];						// Our list of GameObject instances.
+var gameJoints = [];						// Our list of joint instances.
 
 var ground = world.createBody({				// The confinement area for our sandbox
 	userData: {
@@ -200,6 +203,12 @@ function render(alpha) {
 	for (let o = 0; o < gameObjects.length; o++) {
 		gameObjects[o].integrate(alpha);
 	}
+
+	//renderizzo i joint...
+	for (let j = 0; j < gameJoints.length; j++) {
+		gameJoints[j].integrate(alpha);	
+	}
+
 	// Planck.js maintained box2d quite enthusiastically, including not-very-js ways of doing things.
 	// Being a C++ library written in ~2007, it iterates strangely for javascript programmers =)
 	// Also note, that most getters in planck.js are by reference, so that's fun!
@@ -315,6 +324,13 @@ document.addEventListener('keydown', (ev) => {
 	}
 	if (ev.code == 'Space') {
 		var r = randrange(10, 40)
+
+		//scelgo un oggetto tra quelli già esistenti
+		let oo;
+		if (gameObjects.length>0) {
+			oo = gameObjects[randrange(0,gameObjects.length-1)]
+		}
+
 		var o = new GameObject({
 			world: world,
 			position: { x: 200, y: 200 },
@@ -331,6 +347,19 @@ document.addEventListener('keydown', (ev) => {
 		});
 		var force = planck.Vec2(forceStrength, forceStrength).mul(deltaTime * PixelsPerMeter * o.body.m_mass);
 		o.body.applyLinearImpulse(force, o.body.getWorldCenter());
+
+		if (gameObjects.length>1) {
+
+		    //aggiungo il vincolo con l'altro oggetto scelto
+			new GameJoint({
+				world: world,
+				goa: o,
+				gob: oo,
+				label: "joint"
+			});
+		}
+
+
 	}
 	if (ev.code == 'Enter') {
 		var shape;
@@ -533,7 +562,7 @@ class GameObject {
 		this.body.applyLinearImpulse(force, this.body.getWorldCenter(), true);
 	}
 	mouseover() {
-		this.textlabel.text = 'x:'+this.container.x+"y:"+this.container.y;
+		this.textlabel.text = 'x:'+this.container.x.toFixed(2)+" y:"+this.container.y.toFixed(2);
 		this.label.alpha = 1;
 	}
 	mouseout() {
@@ -605,6 +634,101 @@ class PhysicsState {
 	assign(position, a) {
 		this.position = planck.Vec2.clone(position);	// avoid the reference boogie-man
 		this.angle = a;
+	}
+}
+class GameJoint {
+	constructor(opts) {
+		this.label = new PIXI.Graphics();
+		this.sprite = new PIXI.Graphics();
+		this.textlabel = new Text(opts.label, style);
+		this.label.addChild(this.textlabel);
+		this.container = new PIXI.Container();
+		this.world = opts.world;
+		this.goa = opts.goa;
+		this.gob = opts.gob;
+
+		// Container is our main interface to PIXI.
+		// this.container.pivot.x = this.container.width / 2;
+		// this.container.pivot.y = this.container.height / 2;
+		// this.container.x = opts.position.x * PixelsPerMeter;
+		// this.container.y = opts.position.y * PixelsPerMeter;
+		this.container.addChild(this.sprite);
+		spriteLayer.addChild(this.container);
+
+		this.container.interactive = true;
+		this.container.buttonMode = true;
+		this.container.on('pointerdown', this.click.bind(this));
+		this.container.on('mouseover', this.mouseover.bind(this));
+		this.container.on('mouseout', this.mouseout.bind(this));
+		
+		// label
+		this.label.x = this.container.x;
+		this.label.y = this.container.y;
+		labelLayer.addChild(this.label);
+		
+		//creazione del joint
+		let j = FrictionJoint({ collideConnected : true, maxForce : 1, maxTorque : 1 }, this.goa.body, this.gob.body);
+		//let j = DistanceJoint({	bodyA: this.goa.body, localAnchorA: Vec2(0.0, 0.0), bodyB: this.gob.body, localAnchorB: Vec2(0.0, 0.0), frequencyHz: 4, dampingRatio: 0.5 });
+		
+		this.joint = j;
+		world.createJoint(j);		
+		
+		// Finally, we add ourselves to the list of game objects for future iteration.
+		gameJoints.push(this);
+	}
+	click() {
+		console.log("joint click");
+	}
+	mouseover() {
+		console.log("joint over");
+		this.textlabel.text = 'x:'+this.container.x.toFixed(2)+" y:"+this.container.y.toFixed(2);
+		this.label.alpha = 1;
+	}
+	mouseout() {
+		console.log("joint out");
+		this.label.alpha = 0;
+	}
+	integrate(alpha) {
+		
+		let ba = this.joint.getBodyA();
+		let bb = this.joint.getBodyB();
+	
+		
+		let bap = ba.getPosition();
+		let bbp = bb.getPosition();
+
+		console.log(bap,bbp);
+
+		//console.log("ba",ba,"bb",bb);
+
+		this.sprite.clear();
+		this.sprite.lineStyle(3, 0xFEEB77, 1);
+		this.sprite.moveTo(bap.x * PixelsPerMeter, bap.y * PixelsPerMeter);
+		this.sprite.lineTo(bbp.x * PixelsPerMeter, bbp.y * PixelsPerMeter);
+		this.sprite.endFill();
+	
+		//console.log("w",this.container.width,"h",this.container.height);
+
+		//label position
+		this.label.pivot.x = this.label.width / 2;
+		this.label.pivot.y = this.label.height / 2;
+		this.label.x = (bap.x * PixelsPerMeter + bbp.x * PixelsPerMeter) / 2; 
+		this.label.y = (bap.y * PixelsPerMeter + bbp.y * PixelsPerMeter) / 2;
+
+		//joint position
+		//this.container.x = ba.container.x * MetersPerPixel * alpha;
+		//this.container.y = ba.container.y * MetersPerPixel * alpha;
+		this.container.x = bap.x * MetersPerPixel * alpha;
+		this.container.y = bap.y * MetersPerPixel * alpha;
+	
+
+	}
+	update(dt) {
+		
+	}
+	destroy() {
+		// pixi cleanup
+		this.container.destroy({ children: true });
 	}
 }
 // Some helpers, just for fun.

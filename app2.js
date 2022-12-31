@@ -1,6 +1,7 @@
 console.log("app2.js");
 
 const Vec2 = planck.Vec2;
+const FrictionJoint= planck.FrictionJoint;
 
 let scale = 100;
 let GroundW = 3;
@@ -13,7 +14,7 @@ let redBallR = 1;
 
 planck.testbed(function (testbed) {
     
-    var gravity = Vec2(0.0, -9.8);
+    var gravity = Vec2(0.0, -9);
 
     // Create a world
     var world = planck.World(gravity);
@@ -40,6 +41,12 @@ planck.testbed(function (testbed) {
     //var dynamicBox = planck.Box(redBallR, redBallR, Vec2(0, 0));
     var fixtureDef = { shape: dynamicBox, density: 1.0, friction: 0.3 };
     body.createFixture(fixtureDef);
+
+    world.createJoint(FrictionJoint({
+        collideConnected : true,
+        maxForce : 4.5,
+        maxTorque : 0.6
+      }, groundBody, body));
 
 
     // Prepare for simulation
