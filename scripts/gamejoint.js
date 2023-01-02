@@ -61,16 +61,16 @@ export class GameJoint {
 	
 	}
 	click() {
-		console.log("joint click");
+		//console.log("joint click");
 	}
 	mouseover() {
-		console.log("joint over", this.goa.textlabel.text, this.gob.textlabel.text);
+		//console.log("joint over", this.goa.textlabel.text, this.gob.textlabel.text);
 		//this.textlabel.text = 'x:'+this.container.x.toFixed(2)+" y:"+this.container.y.toFixed(2);
 		this.textlabel.text = this.goa.textlabel.text+"--"+ this.gob.textlabel.text;
 		this.label.alpha = 1;
 	}
 	mouseout() {
-		console.log("joint out");
+		//console.log("joint out");
 		this.label.alpha = 0;
 	}
 	integrate(alpha) {

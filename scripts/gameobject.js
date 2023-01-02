@@ -1,25 +1,11 @@
-import {style, randrange, MetersPerPixel, PixelsPerMeter} from './utils.js';
+import {style, randrange, MetersPerPixel, PixelsPerMeter, forceStrength, deltaTime} from './utils.js';
 import {PhysicsState} from './physicsstate.js';
 
-const Application = PIXI.Application;
 const Graphics = PIXI.Graphics;
-const Assets = PIXI.Assets;
-const Loader = PIXI.Loader;
 const Container = PIXI.Container;
 const Sprite = PIXI.Sprite;
-const Rectangle = PIXI.Rectangle;
-const ParticleContainer = PIXI.ParticleContainer;
-const Texture = PIXI.Texture;
-const AnimatedSprite = PIXI.AnimatedSprite;
-const Spritesheet = PIXI.Spritesheet;
-const BaseTexture = PIXI.BaseTexture;
-const TextStyle = PIXI.TextStyle;
+const Point = PIXI.Point;
 const Text = PIXI.Text;
-const TilingSprite = PIXI.TilingSprite;
-const Vec2 = planck.Vec2;
-const FrictionJoint = planck.FrictionJoint;
-const DistanceJoint = planck.DistanceJoint;
-const RopeJoint = planck.RopeJoint;
 
 /*
 	Box2d is a verbose library.  In addition, it has definitions each for Body, Fixture, and Shape; which can be overwhelming.
@@ -30,23 +16,28 @@ export class GameObject {
 		// If no texture is supplied we become a solid shape.
 		this.sprite = opts.texture == null ?  new Graphics() : new Sprite(opts.texture);
         this.spriteLayer = opts.spritelayer;
-		this.debug = new PIXI.Graphics();
+		this.debug = new Graphics();
 		this.debugLayer = opts.debuglayer;
-		this.label = new PIXI.Graphics();
+		this.label = new Graphics();
         this.labelLayer = opts.labellayer;
 		this.textlabel = new Text('', style);
 		this.label.addChild(this.textlabel);
 		
-		this.container = new PIXI.Container();
+		this.container = new Container();
 		this.shapeType = opts.shape;
 		this.bulletCounter = 0;			// Expire our bullet flag after a short time; it's only needed for launching really.
 		this.world = opts.world;
         this.renderer = opts.renderer;
 		this.dirty = false;				// Outside the game area, I should get removed.
 
-        this.bulletMode = opts.bulletmode;          //TODO:setBulletMode
-        this.interpolation = opts.interpolation;    //TODO:setInterpolation
-        this.drawLines = opts.drawlines;            //TODO:setDrawLines
+        this.bulletMode = opts.bulletmode;          
+        this.setBulletMode = (v) => this.bulletMode = v;
+
+        this.interpolation = opts.interpolation;    
+        this.setInterpolation = (v) => this.interpolation = v;
+
+        this.drawLines = opts.drawlines;            
+        this.setDrawLines = (v) => this.drawLines = v;
 
 		this.body = this.world.createBody({
 			type: opts.type,
@@ -63,7 +54,7 @@ export class GameObject {
 				restitution: opts.restitution,
 				density: opts.density
 			});
-			if (this.sprite instanceof PIXI.Sprite == false) {
+			if (this.sprite instanceof Sprite == false) {
 				this.sprite.beginFill(opts.color, 1);
 				this.sprite.drawRect(0, 0, opts.radius, opts.radius);
 				this.sprite.endFill();
@@ -82,12 +73,12 @@ export class GameObject {
 				restitution: opts.restitution,
 				density: opts.density
 			});
-			if (this.sprite instanceof PIXI.Sprite == false) {
+			if (this.sprite instanceof Sprite == false) {
 				this.sprite.beginFill(opts.color, 1);
 				this.sprite.drawPolygon([
-					new PIXI.Point(-opts.radius, opts.radius),
-					new PIXI.Point(0, opts.radius * 2),
-					new PIXI.Point(opts.radius, opts.radius)
+					new Point(-opts.radius, opts.radius),
+					new Point(0, opts.radius * 2),
+					new Point(opts.radius, opts.radius)
 				]);
 				this.sprite.endFill();
 			}
@@ -98,7 +89,7 @@ export class GameObject {
 				restitution: opts.restitution,
 				density: opts.density
 			});
-			if (this.sprite instanceof PIXI.Sprite == false) {
+			if (this.sprite instanceof Sprite == false) {
 				this.sprite.beginFill(opts.color, 1);
 				this.sprite.drawCircle(0, 0, opts.radius);
 				this.sprite.endFill();
@@ -108,7 +99,7 @@ export class GameObject {
 		this.previousState = new PhysicsState();
 		this.previousState.assign(this.body.getPosition(), this.body.getAngle());
 		// If a texture is present, we need to center our origin
-		if (this.sprite instanceof PIXI.Sprite) {
+		if (this.sprite instanceof Sprite) {
 			this.sprite.pivot.x = this.sprite.width / 2;
 			this.sprite.pivot.y = this.sprite.height / 2;
 			//this.sprite.scale.set(opts.radius*MetersPerPixel*(PixelsPerMeter/12),opts.radius*MetersPerPixel*(PixelsPerMeter/12));

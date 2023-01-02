@@ -1,6 +1,6 @@
 console.log("app1.js");
 
-import {randcolor, randrange, MetersPerPixel, PixelsPerMeter} from './utils.js';
+import {randcolor, randrange, MetersPerPixel, PixelsPerMeter, forceStrength, deltaTime, physicsSteps, timestep, modifyPhysicsSteps, setPhysicsSteps} from './utils.js';
 import {GameJoint} from './gamejoint.js';
 import {GameObject} from './gameobject.js';
 
@@ -9,20 +9,10 @@ const Graphics = PIXI.Graphics;
 const Assets = PIXI.Assets;
 const Loader = PIXI.Loader;
 const Container = PIXI.Container;
-const Sprite = PIXI.Sprite;
-const Rectangle = PIXI.Rectangle;
-const ParticleContainer = PIXI.ParticleContainer;
-const Texture = PIXI.Texture;
-const AnimatedSprite = PIXI.AnimatedSprite;
 const Spritesheet = PIXI.Spritesheet;
 const BaseTexture = PIXI.BaseTexture;
 const TextStyle = PIXI.TextStyle;
 const Text = PIXI.Text;
-const TilingSprite = PIXI.TilingSprite;
-const Vec2 = planck.Vec2;
-const FrictionJoint = planck.FrictionJoint;
-const DistanceJoint = planck.DistanceJoint;
-const RopeJoint = planck.RopeJoint;
 
 // PIXI
 //const renderer = new PIXI.Renderer({ width: 1280, height: 720, backgroundColor: 0x000000 });
@@ -96,21 +86,18 @@ uiLayer.addChild(bottomText);
 	Further reading on the concept of scaling box2d: https://box2d.org/2011/12/pixels/
 */
 
-var drawLines = false;						// Draw Debug lines
 // Timing
 var gameTime = 0;							// Elapsed time since updating began.
 var lastTime = 0;
 var frameTime = 0;
 var accumulator = 0;
-var physicsSteps = 60;						// How many physics steps per second.
-var timestep = 1000 / physicsSteps;			// 
-var deltaTime = timestep / 1000;				// Since we're fixed, we don't need to divide constantly during simulation.
+
 // Settings
 var interpolation = true;					// Draw PIXI objects between physics states for smoother animation.
-var forceStrength = 20;						// How much power our bunnies posses.
 var deleteQueued = false;					// Destroying stuff during a physics step would be crashy.
 var deleteAll = false;						// Flag to remove all objects next cycle (again, input polling it outside main loop, so we have to handle this cleanly)
 var bulletMode = false;						// Flag new objects as bullets (prevents tunneling, but is harsh on performance)
+var drawLines = false;						// Draw Debug lines
 
 // Our main Box2D world.
 var world = planck.World({
@@ -287,16 +274,12 @@ document.addEventListener('keyup', (ev) => {
 });
 document.addEventListener('keydown', (ev) => {
 	if (ev.code == "BracketLeft") {
-		physicsSteps -= 5;
-		if (physicsSteps < 5) physicsSteps = 5;
-		timestep = 1000 / physicsSteps;
-		deltaTime = timestep / 1000;
+		modifyPhysicsSteps(-5);
+		if (physicsSteps < 5) setPhysicsSteps(5);
 	}
 	if (ev.code == "BracketRight") {
-		physicsSteps += 5;
-		if (physicsSteps > 200) physicsSteps = 200;
-		timestep = 1000 / physicsSteps;
-		deltaTime = timestep / 1000;
+		modifyPhysicsSteps(5);
+		if (physicsSteps > 200) setPhysicsSteps(200);
 	}
 	if (ev.code == "Delete") {
 		deleteQueued = true;

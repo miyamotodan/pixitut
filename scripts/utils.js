@@ -16,5 +16,26 @@ const style = new PIXI.TextStyle({
 
 var PixelsPerMeter = 50;					// How many pixels represent 1 meter.
 var MetersPerPixel = 1 / PixelsPerMeter;	// And the reverse.
+var forceStrength = 20;						// How much power our bunnies posses.
 
-export {randcolor, randrange, style, PixelsPerMeter, MetersPerPixel}
+var physicsSteps = 60;						// How many physics steps per second.
+var timestep = 1000 / physicsSteps;			// milliseconds per step
+var deltaTime = timestep / 1000;			// Since we're fixed, we don't need to divide constantly during simulation.
+
+const modifyPhysicsSteps = (v) => {
+    physicsSteps += v;
+    timestep = 1000 / physicsSteps;
+    deltaTime = timestep / 1000;
+}
+
+const setPhysicsSteps = (v) => {
+    physicsSteps = v;
+    timestep = 1000 / physicsSteps;
+    deltaTime = timestep / 1000;
+}
+
+export {randcolor, randrange, style, PixelsPerMeter, MetersPerPixel, forceStrength, 
+    deltaTime, 
+    timestep, 
+    physicsSteps, modifyPhysicsSteps, setPhysicsSteps
+}
