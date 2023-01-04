@@ -11,6 +11,9 @@ const RopeJoint = planck.RopeJoint;
 
 export class GameJoint {
 	constructor(opts) {
+		//salvo le opzioni originali
+		this.opts = opts;
+
 		this.label = new Graphics();
         this.labelLayer = opts.labellayer;
 		this.sprite = new Graphics();

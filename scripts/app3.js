@@ -16,9 +16,9 @@ const Text = PIXI.Text;
 const TilingSprite = PIXI.TilingSprite;
 const Vec2 = planck.Vec2;
 
-app = new PIXI.Application({ width: 1280, height: 720, backgroundColor: 0x000000, antialias: true, autoDensity: true, resolution: 2 });
+let app = new PIXI.Application({ width: 1280, height: 720, backgroundColor: 0x000000, antialias: true, autoDensity: true, resolution: 2 });
 document.body.appendChild(app.view);
-viewport = new pixi_viewport.Viewport({
+let viewport = new pixi_viewport.Viewport({
 	// screenWidth: window.innerWidth,              // screen width used by viewport (eg, size of canvas)
 	// screenHeight: window.innerHeight,            // screen height used by viewport (eg, size of canvas)
 	worldWidth: 1280,                               // world width used by viewport (automatically calculated based on container width)

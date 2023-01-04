@@ -107,6 +107,7 @@ var world = planck.World({
 var gameObjects = [];						// Our list of GameObject instances.
 var gameJoints = [];						// Our list of joint instances.
 
+//distrugge i joint legati ad un game object
 const destroyJoints = (go) => {
 	//related joints
 	let jtd = gameJoints.filter( j => j.goa===go || j.gob===go);
@@ -361,7 +362,7 @@ document.addEventListener('keydown', (ev) => {
 				goa: o,
 				gob: oo,
 				label: "joint",
-				type: "rope"
+				type: "distance" //rope friction distance
 			}));
 
 		

@@ -1,3 +1,4 @@
+//usa PIXI7
 console.log("app.js");
 
 const Application = PIXI.Application;

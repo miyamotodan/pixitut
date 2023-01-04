@@ -13,6 +13,9 @@ const Text = PIXI.Text;
 */
 export class GameObject {
 	constructor(opts) {
+		//salvo le opzioni originali
+		this.opts = opts;
+
 		// If no texture is supplied we become a solid shape.
 		this.sprite = opts.texture == null ?  new Graphics() : new Sprite(opts.texture);
         this.spriteLayer = opts.spritelayer;
@@ -66,9 +69,12 @@ export class GameObject {
 		}
 		else if (this.shapeType == 'triangle') {
 			this.body.createFixture(planck.Polygon([
-				planck.Vec2(-opts.radius * MetersPerPixel, opts.radius * MetersPerPixel),
-				planck.Vec2(0, opts.radius * 2 * MetersPerPixel),
-				planck.Vec2(opts.radius * MetersPerPixel, opts.radius * MetersPerPixel)]), {
+				//planck.Vec2(-opts.radius * MetersPerPixel, opts.radius * MetersPerPixel),
+				//planck.Vec2(0, opts.radius * 2 * MetersPerPixel),
+				//planck.Vec2(opts.radius * MetersPerPixel, opts.radius * MetersPerPixel)]), {
+				planck.Vec2(-opts.radius * MetersPerPixel, 0 * MetersPerPixel),
+				planck.Vec2(0, opts.radius * MetersPerPixel),
+				planck.Vec2(opts.radius * MetersPerPixel, 0)]), {
 				friction: opts.friction,
 				restitution: opts.restitution,
 				density: opts.density
@@ -76,11 +82,16 @@ export class GameObject {
 			if (this.sprite instanceof Sprite == false) {
 				this.sprite.beginFill(opts.color, 1);
 				this.sprite.drawPolygon([
-					new Point(-opts.radius, opts.radius),
-					new Point(0, opts.radius * 2),
-					new Point(opts.radius, opts.radius)
+					//new Point(-opts.radius, opts.radius),
+					//new Point(0, opts.radius * 2),
+					//new Point(opts.radius, opts.radius)
+					new Point(-opts.radius, 0),
+					new Point(0, opts.radius),
+					new Point(opts.radius, 0)
 				]);
 				this.sprite.endFill();
+				//this.sprite.pivot.x = this.sprite.width / 2;
+				//this.sprite.pivot.y = this.sprite.height / 2;
 			}
 		}
 		else if (this.shapeType == 'circle') {
@@ -176,7 +187,13 @@ export class GameObject {
 			else if (this.shapeType == 'circle') {
 				var r = this.body.getFixtureList().getShape().m_radius;
 				this.debug.drawCircle(0, 0, r * PixelsPerMeter);
-			}
+			} 
+			
+			if (this.shapeType == 'triangle') {
+				var r = this.opts.radius * MetersPerPixel;
+				this.debug.drawCircle(0, 0, r * PixelsPerMeter);
+			} 
+			
 			this.debug.endFill();
 		}
 
