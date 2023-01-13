@@ -1,9 +1,10 @@
 console.log("app4.js");
 
 import { getLogarithmicScaledValue, randcolor, randrange } from './utils.js';
-import { deltaTime, physicsSteps, modifyPhysicsSteps, setPhysicsSteps, timestep, maxRNode, minRNode, worldW, worldH } from './variables.js';
+import { deltaTime, physicsSteps, modifyPhysicsSteps, setPhysicsSteps, timestep, maxRNode, minRNode, maxREdge, minREdge, worldW, worldH } from './variables.js';
 import { GraphNode } from './GraphNode.js';
-import { json2Graph, maxVnode, minVnode } from './Graph.js';
+import { json2Graph, maxVedge, maxVnode, minVedge, minVnode } from './Graph.js';
+import { GraphEdge } from './GraphEdge.js';
 
 const Application = PIXI.Application;
 const Graphics = PIXI.Graphics;
@@ -83,6 +84,7 @@ var interpolation = true;					// Draw PIXI objects between physics states for sm
 var drawLines = true;						// Draw Debug lines
 
 var graphNodes = [];						// Our list of GraphNode instances.
+var graphEdges = [];						// Our list of GraphEdge instances.
 var g;										// grafo (graphology)
 
 // The bread and butter.  This is (hopefully) a proper game loop, if I learned anything from the gaffer.
@@ -118,7 +120,7 @@ function step(t) {
 						gravity: 0.001,
 						edgeWeightInfluence: 1,
 						slowDown: 5,
-						scalingRatio: 1000,
+						scalingRatio: 2000,
 					},
 					weighted: true,
 					attributes: { weight: "count" },
@@ -152,6 +154,10 @@ function render(alpha) {
 		graphNodes[o].integrate(alpha);
 	}
 
+	for (let o = 0; o < graphEdges.length; o++) {
+		graphEdges[o].integrate(alpha);
+	}
+
 	boundaryGraphics.clear();
 
 	// Set our text for rendering. 
@@ -178,10 +184,11 @@ loader.load((loader, resources) => {
 	g = json2Graph(data);
 	console.log("g:",g);
 
+	//creo i GraphNode
 	data.nodes.forEach(n => {
 		let r = Math.round(getLogarithmicScaledValue(n.value, minRNode, maxRNode, minVnode, maxVnode));
-		var o = new GraphNode({
-			renderer: renderer,
+		var nn = new GraphNode({
+			graph: g, 
 			spritelayer: spriteLayer,
 			labellayer: labelLayer,
 			debuglayer: debugLayer,
@@ -189,18 +196,44 @@ loader.load((loader, resources) => {
 			angle: 0, //Math.random(),
 			radius: r,
 			type: 'dynamic',
-			shape: 'box',
+			shape: 'circle',
 			color: randcolor(),
 			texture: null,
 			interpolation: interpolation,
 			drawlines: drawLines,
 			nodeattr: g.getNodeAttributes(n.id)
 		});
-		graphNodes.push(o);
+		graphNodes.push(nn);
 
 	});
 
+	//creo i GraphEdge
+	data.links.forEach(e => {
+		//console.log(e);  
+		
+		if (graphEdges.filter( ee => ee.source==e.source && ee.target==e.target).length==0) {
 
+			//TODO: RIDUCO gli archi con stessa sorgente e destinazione ad un unico arco
+			console.log("RIDUCO");  	
+		
+			//INSERISCO
+			let r = Math.round(getLogarithmicScaledValue(e.value, minREdge, maxREdge, minVedge, maxVedge));
+			var ee = new GraphEdge({
+				graph: g,
+				spritelayer: spriteLayer,
+				labellayer: labelLayer,
+				radius: r,
+				color: randcolor(),
+				source: e.source,
+				target: e.target,
+				edgeattr: { label : e.source+'|--|'+e.target}
+			});
+			graphEdges.push(ee);
+		} else {
+			console.log("GIA' RIDOTTO");  			
+		}
+	});
+	
 
 
 	let jj = resources.ssjf;

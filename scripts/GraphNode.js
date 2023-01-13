@@ -10,7 +10,8 @@ const Polygon = PIXI.Polygon;
 export class GraphNode {
 	constructor(opts) {
 		//salvo le opzioni originali
-		this.opts = opts;
+		//this.opts = opts;
+		this.graph = opts.graph;
 		this.nodeAttr = opts.nodeattr;
 		
 		this.type = opts.type, //static , dynamic
@@ -29,7 +30,6 @@ export class GraphNode {
 		
 		this.container = new Container();
 		this.shapeType = opts.shape;
-        this.renderer = opts.renderer;
 
         this.interpolation = opts.interpolation;    
         this.setInterpolation = (v) => this.interpolation = v;
@@ -124,21 +124,10 @@ export class GraphNode {
 			this.debug.rotation = this.interpolation ? this.state.angle * alpha + this.previousState.angle * (1 - alpha) : this.state.angle;
 			this.debug.lineStyle(1, 0x00ff2a, 1);
 			if (this.shapeType != 'circle') { // width and height don't seem to be a concept to boxes in box2d, so we go by their vertices.
-				
-					this.debug.drawPolygon(this.polygon);
-				
-				/*
-				this.debug.moveTo(this.polygon.points[0].x, this.polygon.points[0].y);
-				for (var v = 1; v < this.polygon.points.lenght ; v++) {
-						this.debug.lineTo(this.polygon.points[v].x, this.polygon.points[v].y);
-				}
-				this.debug.lineTo(this.polygon.points[0].x, this.polygon.points[0].y);
-				*/
-			}
-			
-			
+				this.debug.drawPolygon(this.polygon);				
+			} else
 			if (this.shapeType == 'circle') {
-				this.debug.drawCircle(0, 0, this.opts.radius);
+				this.debug.drawCircle(0, 0, this.radius);
 			} 
 			
 			this.debug.endFill();

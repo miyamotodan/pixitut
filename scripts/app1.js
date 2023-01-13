@@ -110,7 +110,7 @@ var gameJoints = [];						// Our list of joint instances.
 //distrugge i joint legati ad un game object
 const destroyJoints = (go) => {
 	//related joints
-	let jtd = gameJoints.filter( j => j.goa===go || j.gob===go);
+	let jtd = gameJoints( j => j.goa===go || j.gob===go);
 	//console.log("joints to del:",jtd);
 	jtd.forEach( j => {
 		j.destroy();

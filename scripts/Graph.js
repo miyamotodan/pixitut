@@ -2,7 +2,7 @@ import { worldH, worldW } from './variables.js';
 import { randrange } from './utils.js';
 
 let maxVnode = -Infinity; //massimo valore contenuto in un nodo
-let maxVedge = -Infinity; //massimo valore contenuto in un arco
+let maxVedge = 0;         //massimo valore contenuto in un arco
 let minVnode = Infinity; //minimo valore contenuto in un nodo
 let minVedge = Infinity; //minimo valore contenuto in un arco
 

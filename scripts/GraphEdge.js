@@ -1,5 +1,5 @@
 
-import {style} from './utils.js';
+import {style} from './variables.js';
 
 const Graphics = PIXI.Graphics;
 const Container = PIXI.Container;
@@ -8,9 +8,14 @@ const Text = PIXI.Text;
 export class GraphEdge {
 	constructor(opts) {
 		//salvo le opzioni originali
-		this.opts = opts;
-        this.edgeAttr = opts.edgeattr;
+		//this.opts = opts;
 
+        this.edgeAttr = opts.edgeattr;
+		this.graph = opts.graph;
+		this.source = opts.source;
+		this.target = opts.target;
+		
+		this.radius = opts.radius;
 		this.label = new Graphics();
         this.labelLayer = opts.labellayer;
 		this.sprite = new Graphics();
@@ -46,6 +51,15 @@ export class GraphEdge {
 	}
 	integrate(alpha) {
 		
+		//console.log (this.source, this.target, this.radius);
+
+		this.sprite.clear();
+		this.sprite.lineStyle(this.radius, 0xFEEB77, 1);
+		this.sprite.moveTo(this.graph.getNodeAttributes(this.source).x, this.graph.getNodeAttributes(this.source).y);
+		this.sprite.lineTo(this.graph.getNodeAttributes(this.target).x, this.graph.getNodeAttributes(this.target).y);
+		this.sprite.endFill();
+	
+
         /*
 		let ba = this.joint.getBodyA();
 		let bb = this.joint.getBodyB();

@@ -20,8 +20,10 @@ var deltaTime = timestep / 1000;			// Since we're fixed, we don't need to divide
 
 const worldW = 1280;
 const worldH = 720;
-const maxRNode = 200;
+const maxRNode = 100;
 const minRNode = 20;
+const maxREdge = 20;
+const minREdge = 2;
 
 const modifyPhysicsSteps = (v) => {
     physicsSteps += v;
@@ -41,6 +43,6 @@ export {
     deltaTime, timestep, 
     physicsSteps, modifyPhysicsSteps, setPhysicsSteps,
     worldW, worldH,
-    maxRNode, minRNode 
+    maxRNode, minRNode, maxREdge, minREdge 
 }
 
