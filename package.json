@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "graphology": "^0.25.1",
     "howler": "^2.2.3",
     "pixi-viewport": "^4.38.0",
     "pixi.js": "^7.0.5",
