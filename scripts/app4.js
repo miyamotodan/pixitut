@@ -48,8 +48,12 @@ viewport.fit()
 //const stage = new PIXI.Container();				// Everything ends up here.
 const stage = viewport;
 
-const spriteLayer = new Container();		// Sprites in here.
-stage.addChild(spriteLayer);
+const spriteEdgeLayer = new Container();		// Sprites in here.
+stage.addChild(spriteEdgeLayer);
+const spriteNodeLayer = new Container();		// Sprites in here.
+stage.addChild(spriteNodeLayer);
+
+
 const debugLayer = new Container();		// Outlines/planck shapes.
 stage.addChild(debugLayer);
 const uiLayer = new Container();			// Text UI on top
@@ -151,12 +155,13 @@ function step(t) {
 }
 
 function render(alpha) {
-	for (let o = 0; o < graphNodes.length; o++) {
-		graphNodes[o].integrate(alpha);
-	}
-
+	
 	for (let o = 0; o < graphEdges.length; o++) {
 		graphEdges[o].integrate(alpha);
+	}
+
+	for (let o = 0; o < graphNodes.length; o++) {
+		graphNodes[o].integrate(alpha);
 	}
 
 	boundaryGraphics.clear();
@@ -176,6 +181,7 @@ const loader = Loader.shared; // PixiJS exposes a premade instance for you to us
 let spritesheet;
 let data;
 loader.add('ssjf', 'assets/spritesheet.json');
+loader.add('bubble', 'assets/plain-bubble-clipart-md.png');
 loader.add('data', 'assets/data.json');
 loader.load((loader, resources) => {
 
@@ -187,62 +193,48 @@ loader.load((loader, resources) => {
 
 	rg = reduceGraph(g);
 
-	//**** 
-	//TODO: la creazione di nodi ed archi deve avvenire scandendo rg  non i dati originali
-	//**** 
-	
 	//creo i GraphNode
-	data.nodes.forEach(n => {
-		let r = Math.round(getLogarithmicScaledValue(n.value, minRNode, maxRNode, minVnode, maxVnode));
+	rg.forEachNode( (n, a) => {
+		let r = Math.round(getLogarithmicScaledValue(a.value, minRNode, maxRNode, minVnode, maxVnode));
 		var nn = new GraphNode({
 			graph: g, 
-			spritelayer: spriteLayer,
+			spritelayer: spriteNodeLayer,
 			labellayer: labelLayer,
 			debuglayer: debugLayer,
-			position: { x: g.getNodeAttributes(n.id).x, y: g.getNodeAttributes(n.id).y },
+			position: { x: a.x, y: a.y },
 			angle: 0, //Math.random(),
 			radius: r,
 			type: 'dynamic',
 			shape: 'circle',
 			color: randcolor(),
-			texture: null,
+			texture: resources.bubble.texture,
 			interpolation: interpolation,
 			drawlines: drawLines,
-			nodeattr: g.getNodeAttributes(n.id)
+			nodeattr: a
 		});
 		graphNodes.push(nn);
-
 	});
 
+	let c = 0xeeffee; //randcolor();
 	//creo i GraphEdge
-	data.links.forEach(e => {
-		//console.log(e);  
-		
-		if (graphEdges.filter( ee => ee.source==e.source && ee.target==e.target).length==0) {
-
-			//TODO: RIDUCO gli archi con stessa sorgente e destinazione ad un unico arco
-			console.log("RIDUCO");  	
-		
-			//INSERISCO
-			let r = Math.round(getLogarithmicScaledValue(e.value, minREdge, maxREdge, minVedge, maxVedge));
-			var ee = new GraphEdge({
-				graph: g,
-				spritelayer: spriteLayer,
-				labellayer: labelLayer,
-				radius: r,
-				color: randcolor(),
-				source: e.source,
-				target: e.target,
-				edgeattr: { label : e.source+'|--|'+e.target}
-			});
-			graphEdges.push(ee);
-		} else {
-			console.log("GIA' RIDOTTO");  			
-		}
+	rg.forEachEdge( (e, a, s, t) => {
+		let r = Math.round(getLogarithmicScaledValue(a.value, minREdge, maxREdge, minVedge, maxVedge));
+		var ee = new GraphEdge({
+			graph: g,
+			spritelayer: spriteEdgeLayer,
+			labellayer: labelLayer,
+			radius: r,
+			color: c,
+			source: s,
+			target: t,
+			edgeattr: { label : s+'|--|'+t}
+		});
+		graphEdges.push(ee);
 	});
 	
+	requestAnimationFrame(step);
 
-
+	/*
 	let jj = resources.ssjf;
 	spritesheet = new Spritesheet(
 		BaseTexture.from("assets/" + jj.data.meta.image),
@@ -253,6 +245,9 @@ loader.load((loader, resources) => {
 		//tutte le textures pronte
 		requestAnimationFrame(step);
 	});
+	*/
+
+	
 });
 
 /*
@@ -290,29 +285,7 @@ document.addEventListener('keydown', (ev) => {
 	if (ev.code == "NumpadSubtract") { }
 	if (ev.code == 'Enter') { }
 	if (ev.code == 'KeyT') { }
-	if (ev.code == 'Space') {
-
-		/*
-		var r = randrange(30,100)
-		var o = new GraphNode({
-			renderer: renderer,
-			spritelayer: spriteLayer,
-			labellayer: labelLayer,
-			debuglayer: debugLayer,
-			position: { x: randrange(150,400), y: randrange(150,400) },
-			angle: 0, // Math.random		(),
-			radius: r,
-			type: 'dynamic',
-			shape: 'circle',
-			color: randcolor(),
-			texture: spritesheet.textures['sprite0' + randrange(1, 4)],
-			interpolation: interpolation,
-			drawlines: drawLines	
-		});
-		graphNodes.push(o);
-		console.log(graphNodes);
-		*/
-	}
+	if (ev.code == 'Space') { }
 	if (ev.code == 'KeyS') {
 		//stop
 		paused = true;
