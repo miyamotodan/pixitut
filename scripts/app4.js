@@ -3,7 +3,7 @@ console.log("app4.js");
 import { getLogarithmicScaledValue, randcolor, randrange } from './utils.js';
 import { deltaTime, physicsSteps, modifyPhysicsSteps, setPhysicsSteps, timestep, maxRNode, minRNode, maxREdge, minREdge, worldW, worldH } from './variables.js';
 import { GraphNode } from './GraphNode.js';
-import { json2Graph, maxVedge, maxVnode, minVedge, minVnode } from './Graph.js';
+import { json2Graph, maxVedge, maxVnode, minVedge, minVnode, reduceGraph } from './Graph.js';
 import { GraphEdge } from './GraphEdge.js';
 
 const Application = PIXI.Application;
@@ -86,6 +86,7 @@ var drawLines = true;						// Draw Debug lines
 var graphNodes = [];						// Our list of GraphNode instances.
 var graphEdges = [];						// Our list of GraphEdge instances.
 var g;										// grafo (graphology)
+var rg;										// grafo ridotto (graphology)
 
 // The bread and butter.  This is (hopefully) a proper game loop, if I learned anything from the gaffer.
 function step(t) {
@@ -184,6 +185,12 @@ loader.load((loader, resources) => {
 	g = json2Graph(data);
 	console.log("g:",g);
 
+	rg = reduceGraph(g);
+
+	//**** 
+	//TODO: la creazione di nodi ed archi deve avvenire scandendo rg  non i dati originali
+	//**** 
+	
 	//creo i GraphNode
 	data.nodes.forEach(n => {
 		let r = Math.round(getLogarithmicScaledValue(n.value, minRNode, maxRNode, minVnode, maxVnode));
