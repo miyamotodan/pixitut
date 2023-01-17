@@ -1,5 +1,5 @@
 
-import {style, PixelsPerMeter, MetersPerPixel} from './utils.js';
+import {style, PixelsPerMeter, MetersPerPixel} from './variables.js';
 
 const Graphics = PIXI.Graphics;
 const Container = PIXI.Container;

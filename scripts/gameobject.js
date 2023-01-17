@@ -1,5 +1,6 @@
-import {style, randrange, MetersPerPixel, PixelsPerMeter, forceStrength, deltaTime} from './utils.js';
+import {style, MetersPerPixel, PixelsPerMeter, forceStrength, deltaTime} from './variables.js';
 import {PhysicsState} from './physicsstate.js';
+import {randrange} from './utils.js';
 
 const Graphics = PIXI.Graphics;
 const Container = PIXI.Container;

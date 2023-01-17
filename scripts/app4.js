@@ -97,25 +97,26 @@ function step(t) {
 
 	requestAnimationFrame(step);
 
-	if (!paused) {
-
-		if (lastTime) {
-			frameTime = t - lastTime;
-			accumulator += frameTime;
-			while (accumulator >= timestep) {
-				// walk in reverse since we could be splicing.
-				for (let o = graphNodes.length - 1; o >= 0; o--) {
-					// delete objects flagged out of bounds
-					if (graphNodes[o].dirty) {
-						destroyJoints(graphNodes[o]);
-						graphNodes[o].destroy();
-						graphNodes.splice(o, 1);
-						continue;
-					}
-					if (!graphNodes[o].type === "static")
-						graphNodes[o].update(deltaTime);
+	if (lastTime) {
+		frameTime = t - lastTime;
+		accumulator += frameTime;
+		while (accumulator >= timestep) {
+			// walk in reverse since we could be splicing.
+			for (let o = graphNodes.length - 1; o >= 0; o--) {
+				// delete objects flagged out of bounds
+				if (graphNodes[o].dirty) {
+					destroyJoints(graphNodes[o]);
+					graphNodes[o].destroy();
+					graphNodes.splice(o, 1);
+					continue;
 				}
-				
+				if (!graphNodes[o].type === "static")
+					graphNodes[o].update(deltaTime);
+			}
+
+			//indica la pausa del layout
+			if (!paused) {
+
 				//calcolo la nuova posizione dei nodi
 				let positions = graphologyLibrary.layoutForceAtlas2(g, {
 					iterations: 1,
@@ -136,21 +137,26 @@ function step(t) {
 					g.setNodeAttribute(node, "x", positions[node].x);
 					g.setNodeAttribute(node, "y", positions[node].y);	
 				});
-				//assegnare le nuove posizioni ai nodi (PIXI)
-				for (let o = 0; o < graphNodes.length; o++) {
-					let gn = graphNodes[o]; 
+			
+			}
+
+			//assegnare le nuove posizioni ai nodi (PIXI)
+			for (let o = 0; o < graphNodes.length; o++) {
+				let gn = graphNodes[o]; 
+				if (!gn.dragged) {
 					gn.state.x = g.getNodeAttributes(gn.nodeAttr.id).x;
 					gn.state.y = g.getNodeAttributes(gn.nodeAttr.id).y;
 					gn.state.angle += 0; //randrange(0, 2) / 100;
 				}
-			
-				gameTime += timestep;
-				accumulator -= timestep;
 			}
-			render(accumulator / timestep);			// PIXI time.
+
+			gameTime += timestep;
+			accumulator -= timestep;
 		}
-		lastTime = t;
+		render(accumulator / timestep);			// PIXI time.
 	}
+	lastTime = t;
+
 
 }
 
@@ -180,10 +186,24 @@ function render(alpha) {
 const loader = Loader.shared; // PixiJS exposes a premade instance for you to use.
 let spritesheet;
 let data;
-loader.add('ssjf', 'assets/spritesheet.json');
+loader.add('ssjf', 'assets/rollingBall_sheet.json');
 loader.add('bubble', 'assets/plain-bubble-clipart-md.png');
 loader.add('data', 'assets/data.json');
 loader.load((loader, resources) => {
+
+	let jj = resources.ssjf;
+	spritesheet = new Spritesheet(
+		BaseTexture.from("assets/" + jj.data.meta.image),
+		jj.data
+	);
+	// Generate all the Textures asynchronously
+	spritesheet.parse().then(() => {
+
+		console.log(spritesheet);
+
+		//tutte le textures pronte
+		requestAnimationFrame(step);
+	});
 
 	//carica i dati
 	data = resources.data.data;
@@ -198,6 +218,7 @@ loader.load((loader, resources) => {
 		let r = Math.round(getLogarithmicScaledValue(a.value, minRNode, maxRNode, minVnode, maxVnode));
 		var nn = new GraphNode({
 			graph: g, 
+			viewport: viewport,
 			spritelayer: spriteNodeLayer,
 			labellayer: labelLayer,
 			debuglayer: debugLayer,
@@ -207,7 +228,8 @@ loader.load((loader, resources) => {
 			type: 'dynamic',
 			shape: 'circle',
 			color: randcolor(),
-			texture: resources.bubble.texture,
+			//texture: resources.bubble.texture,
+			texture: spritesheet.textures.ball_red_large,
 			interpolation: interpolation,
 			drawlines: drawLines,
 			nodeattr: a
@@ -221,6 +243,7 @@ loader.load((loader, resources) => {
 		let r = Math.round(getLogarithmicScaledValue(a.value, minREdge, maxREdge, minVedge, maxVedge));
 		var ee = new GraphEdge({
 			graph: g,
+			viewport: viewport,
 			spritelayer: spriteEdgeLayer,
 			labellayer: labelLayer,
 			radius: r,
@@ -232,20 +255,10 @@ loader.load((loader, resources) => {
 		graphEdges.push(ee);
 	});
 	
-	requestAnimationFrame(step);
+	//requestAnimationFrame(step);
 
-	/*
-	let jj = resources.ssjf;
-	spritesheet = new Spritesheet(
-		BaseTexture.from("assets/" + jj.data.meta.image),
-		jj.data
-	);
-	// Generate all the Textures asynchronously
-	spritesheet.parse().then(() => {
-		//tutte le textures pronte
-		requestAnimationFrame(step);
-	});
-	*/
+	
+
 
 	
 });

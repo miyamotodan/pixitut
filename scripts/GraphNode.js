@@ -19,13 +19,14 @@ export class GraphNode {
 		// If no texture is supplied we become a solid shape.
 		this.sprite = opts.texture == null ?  new Graphics() : new Sprite(opts.texture);
         this.spriteLayer = opts.spritelayer;
+		this.viewport = opts.viewport;
 		this.debug = new Graphics();
 		this.debugLayer = opts.debuglayer;
 		this.label = new Graphics();
         this.labelLayer = opts.labellayer;
 		this.textlabel = new Text('', style);
 		this.label.addChild(this.textlabel);
-		
+		this.dragged=false;
 		this.state = { x: opts.position.x, y: opts.position.y, angle: opts.angle};
 		
 		this.container = new Container();
@@ -87,7 +88,10 @@ export class GraphNode {
 
 		this.container.interactive = true;
 		this.container.buttonMode = true;
-		this.container.on('pointerdown', this.click.bind(this));
+		
+		this.container.on('mousemove', this.mousemove.bind(this));
+		this.container.on('pointerup', this.mouseup.bind(this));
+		this.container.on('pointerdown', this.mousedown.bind(this));
 		this.container.on('mouseover', this.mouseover.bind(this));
 		this.container.on('mouseout', this.mouseout.bind(this));
 		// Debug lines
@@ -100,8 +104,28 @@ export class GraphNode {
 		this.labelLayer.addChild(this.label);
 		
 	}
-	click() {
-		console.log('click');
+	mousedown(e) {
+		//console.log('down', e.data.global.x,e.data.global.y);
+		this.viewport.pause = true;
+		this.dragged = true;
+	}
+	mouseup(e) {
+		//console.log('up', e.data.global.x,e.data.global.y);
+		this.viewport.pause = false;
+		this.dragged = false;
+		
+		//assegno al nodo de grafo le coordinate in cui è stato draggato
+		this.graph.setNodeAttribute(this.nodeAttr.id,"x",this.state.x);
+		this.graph.setNodeAttribute(this.nodeAttr.id,"y",this.state.y);
+		
+	}
+	mousemove(e) {
+		//console.log('move', e.data.global.x,e.data.global.y);
+		if (this.dragged){
+			let newpos = this.viewport.toWorld(e.data.global);
+			this.state.x = newpos.x;
+			this.state.y = newpos.y;
+		}
 	}
 	mouseover() {
 		this.textlabel.text = "["+this.nodeAttr.value+"] "+this.nodeAttr.prefix+":"+this.nodeAttr.type;

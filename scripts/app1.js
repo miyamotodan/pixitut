@@ -1,6 +1,7 @@
 console.log("app1.js");
 
-import {randcolor, randrange, MetersPerPixel, PixelsPerMeter, forceStrength, deltaTime, physicsSteps, timestep, modifyPhysicsSteps, setPhysicsSteps} from './utils.js';
+import {MetersPerPixel, PixelsPerMeter, deltaTime, forceStrength, physicsSteps, modifyPhysicsSteps, setPhysicsSteps, timestep} from './variables.js';
+import {randcolor, randrange } from './utils.js';
 import {GameJoint} from './gamejoint.js';
 import {GameObject} from './gameobject.js';
 

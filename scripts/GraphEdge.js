@@ -25,7 +25,7 @@ export class GraphEdge {
 		this.container = new Container();
 		this.container.addChild(this.sprite);
 		this.spriteLayer.addChild(this.container);
-
+		this.viewport = opts.viewport;
 		this.label.interactive = true;
 	
 		this.label.on('pointerdown', this.click.bind(this));
