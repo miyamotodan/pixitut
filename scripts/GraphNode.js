@@ -13,7 +13,7 @@ export class GraphNode {
 		//this.opts = opts;
 		this.graph = opts.graph;
 		this.nodeAttr = opts.nodeattr;
-		
+		this.radius = opts.radius;
 		this.type = opts.type, //static , dynamic
 
 		// If no texture is supplied we become a solid shape.
@@ -26,6 +26,7 @@ export class GraphNode {
         this.labelLayer = opts.labellayer;
 		this.textlabel = new Text('', style);
 		this.label.addChild(this.textlabel);
+		this.clicked=false;
 		this.dragged=false;
 		this.state = { x: opts.position.x, y: opts.position.y, angle: opts.angle};
 		
@@ -107,11 +108,22 @@ export class GraphNode {
 	mousedown(e) {
 		//console.log('down', e.data.global.x,e.data.global.y);
 		this.viewport.pause = true;
-		this.dragged = true;
+		this.clicked = true;
 	}
 	mouseup(e) {
+
+		if (!this.dragged) {
+			//click secco
+			if (this.type=='dynamic')
+				this.type = 'static';
+			else	 
+				this.type = 'dynamic'
+		}
+		console.log (this.type)
+
 		//console.log('up', e.data.global.x,e.data.global.y);
 		this.viewport.pause = false;
+		this.clicked = false;
 		this.dragged = false;
 		
 		//assegno al nodo de grafo le coordinate in cui è stato draggato
@@ -121,10 +133,11 @@ export class GraphNode {
 	}
 	mousemove(e) {
 		//console.log('move', e.data.global.x,e.data.global.y);
-		if (this.dragged){
+		if (this.clicked){
 			let newpos = this.viewport.toWorld(e.data.global);
 			this.state.x = newpos.x;
 			this.state.y = newpos.y;
+			this.dragged = true;
 		}
 	}
 	mouseover() {
@@ -146,14 +159,12 @@ export class GraphNode {
 			this.debug.x = this.container.x;
 			this.debug.y = this.container.y;
 			this.debug.rotation = this.interpolation ? this.state.angle * alpha + this.previousState.angle * (1 - alpha) : this.state.angle;
-			this.debug.lineStyle(1, 0x00ff2a, 1);
+			this.debug.lineStyle(1, 0xFFFFFF, 1);
 			if (this.shapeType != 'circle') { // width and height don't seem to be a concept to boxes in box2d, so we go by their vertices.
 				this.debug.drawPolygon(this.polygon);				
-			} else
-			if (this.shapeType == 'circle') {
+			} else {
 				this.debug.drawCircle(0, 0, this.radius);
-			} 
-			
+			}
 			this.debug.endFill();
 		}
 

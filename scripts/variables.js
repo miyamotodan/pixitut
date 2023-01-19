@@ -20,7 +20,7 @@ var deltaTime = timestep / 1000;			// Since we're fixed, we don't need to divide
 
 const worldW = 1280;
 const worldH = 720;
-const maxRNode = 100;
+const maxRNode = 120;
 const minRNode = 20;
 const maxREdge = 20;
 const minREdge = 2;

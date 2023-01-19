@@ -116,7 +116,6 @@ function step(t) {
 
 			//indica la pausa del layout
 			if (!paused) {
-
 				//calcolo la nuova posizione dei nodi
 				let positions = graphologyLibrary.layoutForceAtlas2(g, {
 					iterations: 1,
@@ -125,17 +124,21 @@ function step(t) {
 						barnesHutOptimize: false,
 						gravity: 0.001,
 						edgeWeightInfluence: 1,
-						slowDown: 5,
-						scalingRatio: 2000,
+						slowDown: 15,
+						scalingRatio: 4000,
 					},
 					weighted: true,
 					attributes: { weight: "count" },
 				});
 				//assegnare le nuove posizioni ai nodi del grafo
 				g.forEachNode((node, attr) => {
-					//assegno le coordinate agli attributi
-					g.setNodeAttribute(node, "x", positions[node].x);
-					g.setNodeAttribute(node, "y", positions[node].y);	
+					//recupero il nodo "grafico"
+					let gn = graphNodes.filter(n => n.nodeAttr.id==node)[0];
+					if (gn.type === 'dynamic') {
+						//assegno le nuove coordinate agli attributi
+						g.setNodeAttribute(node, "x", positions[node].x);
+						g.setNodeAttribute(node, "y", positions[node].y);	
+					}
 				});
 			
 			}
@@ -198,7 +201,6 @@ loader.load((loader, resources) => {
 	);
 	// Generate all the Textures asynchronously
 	spritesheet.parse().then(() => {
-
 		console.log(spritesheet);
 
 		//tutte le textures pronte
@@ -228,8 +230,9 @@ loader.load((loader, resources) => {
 			type: 'dynamic',
 			shape: 'circle',
 			color: randcolor(),
-			//texture: resources.bubble.texture,
-			texture: spritesheet.textures.ball_red_large,
+			//texture: null,
+			texture: resources.bubble.texture,
+			//texture: spritesheet.textures.ball_red_large,
 			interpolation: interpolation,
 			drawlines: drawLines,
 			nodeattr: a
@@ -250,16 +253,12 @@ loader.load((loader, resources) => {
 			color: c,
 			source: s,
 			target: t,
-			edgeattr: { label : s+'|--|'+t}
+			edgeattr: a
 		});
 		graphEdges.push(ee);
 	});
 	
 	//requestAnimationFrame(step);
-
-	
-
-
 	
 });
 

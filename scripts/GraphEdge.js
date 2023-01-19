@@ -22,6 +22,7 @@ export class GraphEdge {
         this.spriteLayer = opts.spritelayer;
 		this.textlabel = new Text(opts.label, style);
 		this.label.addChild(this.textlabel);
+		this.label.alpha = 0;
 		this.container = new Container();
 		this.container.addChild(this.sprite);
 		this.spriteLayer.addChild(this.container);
@@ -39,14 +40,13 @@ export class GraphEdge {
 	
 	}
 	click() {
-		//console.log("joint click");
+		console.log("joint click");
 	}
 	mouseover() {
-		his.textlabel.text = "["+this.edgeAttr.value+"]";
+		this.textlabel.text = "["+this.edgeAttr.value+"]";
 		this.label.alpha = 1;
 	}
 	mouseout() {
-		//console.log("joint out");
 		this.label.alpha = 0;
 	}
 	integrate(alpha) {
@@ -59,6 +59,12 @@ export class GraphEdge {
 		this.sprite.lineTo(this.graph.getNodeAttributes(this.target).x, this.graph.getNodeAttributes(this.target).y);
 		this.sprite.endFill();
 	
+		//label position
+		this.label.pivot.x = this.label.width / 2;
+		this.label.pivot.y = this.label.height / 2;
+		this.label.x = (this.graph.getNodeAttributes(this.source).x +this.graph.getNodeAttributes(this.target).x) / 2; 
+		this.label.y = (this.graph.getNodeAttributes(this.source).y +this.graph.getNodeAttributes(this.target).y) / 2; 
+
 	}
 	update(dt) {
 		
