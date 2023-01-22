@@ -101,13 +101,7 @@ function step(t) {
 		while (accumulator >= timestep) {
 			// walk in reverse since we could be splicing.
 			for (let o = graphNodes.length - 1; o >= 0; o--) {
-				// delete objects flagged out of bounds
-				if (graphNodes[o].dirty) {
-					destroyJoints(graphNodes[o]);
-					graphNodes[o].destroy();
-					graphNodes.splice(o, 1);
-					continue;
-				}
+				//salvo lo stato precedente
 				if (!graphNodes[o].type === "static")
 					graphNodes[o].update(deltaTime);
 			}
@@ -141,13 +135,17 @@ function step(t) {
 			
 			}
 
-			//assegnare le nuove posizioni ai nodi (PIXI)
+			//assegnare il nuovo stato ai nodi (PIXI)
 			for (let o = 0; o < graphNodes.length; o++) {
 				let gn = graphNodes[o]; 
 				if (!gn.dragged && gn.type === 'dynamic') {
 					gn.state.x = g.getNodeAttributes(gn.nodeAttr.id).x;
 					gn.state.y = g.getNodeAttributes(gn.nodeAttr.id).y;
 					gn.state.angle += gn.deltangle; //0.05; //randrange(0, 5) / 100;
+				} else {
+					//se è draggato è il contraio, il nodo segue la grafica				
+					g.setNodeAttribute(gn.nodeAttr.id, "x", gn.state.x);
+					g.setNodeAttribute(gn.nodeAttr.id, "y", gn.state.y);
 				}
 			}
 

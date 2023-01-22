@@ -163,7 +163,7 @@ export class GraphNode {
 			this.debug.x = this.container.x;
 			this.debug.y = this.container.y;
 			this.debug.rotation = this.interpolation ? this.state.angle * alpha + this.previousState.angle * (1 - alpha) : this.state.angle;
-			this.debug.lineStyle(1, 0xFFFFFF, 1);
+			this.debug.lineStyle(2, 0xFFDDDD, 1);
 			if (this.shapeType != 'circle') { // width and height don't seem to be a concept to boxes in box2d, so we go by their vertices.
 				this.debug.drawPolygon(this.polygon);				
 			} else {
