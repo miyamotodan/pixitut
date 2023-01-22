@@ -1,3 +1,4 @@
+import { randrange } from './utils.js';
 import {style} from './variables.js';
 
 const Graphics = PIXI.Graphics;
@@ -104,6 +105,9 @@ export class GraphNode {
 		this.label.y = this.container.y = opts.position.y;
 		this.labelLayer.addChild(this.label);
 		
+		//rotazione dinamica casuale
+		this.deltangle = ((randrange(0,1)==1? 1 : - 1)) * randrange(1,5) /100; 
+
 	}
 	mousedown(e) {
 		//console.log('down', e.data.global.x,e.data.global.y);

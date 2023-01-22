@@ -22,6 +22,8 @@ const Text = PIXI.Text;
 
 let app = new Application({ width: worldW, height: worldH, backgroundColor: 0x000000, antialias: true, autoDensity: true, resolution: 2 });
 document.body.appendChild(app.view);
+
+//container in cui c'è il grafo e tutti i layer legati agli oggetti del grafo
 let viewport = new pixi_viewport.Viewport({
 	// screenWidth: window.innerWidth,              // screen width used by viewport (eg, size of canvas)
 	// screenHeight: window.innerHeight,            // screen height used by viewport (eg, size of canvas)
@@ -37,31 +39,14 @@ let viewport = new pixi_viewport.Viewport({
 	// divWheel: null,                              // div to attach the wheel event (uses document.body as default)
 	// disableOnContextMenu: false,                 // remove oncontextmenu=() => {} from the divWheel element
 });
-app.stage.addChild(viewport);
 viewport.drag().pinch().wheel().decelerate().clampZoom({ maxScale: 2.0, minScale: 0.05 });
 const renderer = app.renderer
 viewport.fit()
+app.stage.addChild(viewport);
 
-//const loader = PIXI.Loader.shared; 				// for v5+.  In v4 Loader should be lowercased?
-// Layer our scene with containers
-
-//const stage = new PIXI.Container();				// Everything ends up here.
-const stage = viewport;
-
-const spriteEdgeLayer = new Container();		// Sprites in here.
-stage.addChild(spriteEdgeLayer);
-const spriteNodeLayer = new Container();		// Sprites in here.
-stage.addChild(spriteNodeLayer);
-
-
-const debugLayer = new Container();		// Outlines/planck shapes.
-stage.addChild(debugLayer);
+//container in cui ci sono le componenti fisse dell'interfaccia
 const uiLayer = new Container();			// Text UI on top
-stage.addChild(uiLayer);
-const labelLayer = new Container();	    // object's labels
-stage.addChild(labelLayer);
-const boundaryGraphics = new Graphics();	// our stage boundaries are on their own graphics object we handle
-debugLayer.addChild(boundaryGraphics);			// in the way planck.js provides us (this is a demo afterall)
+app.stage.addChild(uiLayer);
 var infoText = new Text('', new TextStyle({ fill: '#ffffff' }));
 infoText.x = 30;
 infoText.y = 25;
@@ -75,6 +60,19 @@ bottomText.x = 20;
 bottomText.y = renderer.screen.height - 40;
 uiLayer.addChild(bottomText);
 
+//const loader = PIXI.Loader.shared; 				// for v5+.  In v4 Loader should be lowercased?
+
+const spriteEdgeLayer = new Container();		// Sprites in here.
+viewport.addChild(spriteEdgeLayer);
+const spriteNodeLayer = new Container();		// Sprites in here.
+viewport.addChild(spriteNodeLayer);
+const debugLayer = new Container();				// Outlines/planck shapes.
+viewport.addChild(debugLayer);
+const labelLayer = new Container();	    		// object's labels
+viewport.addChild(labelLayer);
+
+//const boundaryGraphics = new Graphics();		// our stage boundaries are on their own graphics object we handle
+//debugLayer.addChild(boundaryGraphics);		// in the way planck.js provides us (this is a demo afterall)
 
 // Timing
 var gameTime = 0;							// Elapsed time since updating began.
@@ -146,10 +144,10 @@ function step(t) {
 			//assegnare le nuove posizioni ai nodi (PIXI)
 			for (let o = 0; o < graphNodes.length; o++) {
 				let gn = graphNodes[o]; 
-				if (!gn.dragged) {
+				if (!gn.dragged && gn.type === 'dynamic') {
 					gn.state.x = g.getNodeAttributes(gn.nodeAttr.id).x;
 					gn.state.y = g.getNodeAttributes(gn.nodeAttr.id).y;
-					gn.state.angle += 0; //randrange(0, 2) / 100;
+					gn.state.angle += gn.deltangle; //0.05; //randrange(0, 5) / 100;
 				}
 			}
 
@@ -173,16 +171,17 @@ function render(alpha) {
 		graphNodes[o].integrate(alpha);
 	}
 
-	boundaryGraphics.clear();
+	//boundaryGraphics.clear();
 
 	// Set our text for rendering. 
-	infoText.text = "\n#: " + graphNodes.length + "     lastTime: " + lastTime.toFixed(4) + "   frameTime: " + frameTime.toFixed(4) + "     gameTime:"+gameTime.toFixed(4);
-	topText.text = 'SPACE: new node!';
-	topText.text += "      [ ] = timestep (" + timestep.toFixed(2) + ")";
+	infoText.text = "\n#: " + graphNodes.length;
+	//infoText.text += "     lastTime: " + lastTime.toFixed(4) + "   frameTime: " + frameTime.toFixed(4) + "     gameTime:"+gameTime.toFixed(4);
+	topText.text = " [ ] = timestep (" + timestep.toFixed(2) + ")";
 	bottomText.text = "(S)top (P)lay (L)ines: are " + (drawLines ? "On" : "Off") + "  (I)nterpolation: is " + (interpolation ? "On" : "Off") + "  ";
 
 	// And finally...
-	renderer.render(stage);
+	renderer.render(app.stage);
+	
 }
 
 //PIXI 6 Loader
