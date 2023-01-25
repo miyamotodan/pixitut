@@ -83,7 +83,7 @@ var paused = false;
 
 // Settings
 var interpolation = true;					// Draw PIXI objects between physics states for smoother animation.
-var drawLines = true;						// Draw Debug lines
+var drawLines = false;						// Draw Debug lines
 
 var graphNodes = [];						// Our list of GraphNode instances.
 var graphEdges = [];						// Our list of GraphEdge instances.
@@ -188,6 +188,7 @@ let spritesheet;
 let data;
 loader.add('ssjf', 'assets/rollingBall_sheet.json');
 loader.add('bubble', 'assets/plain-bubble-clipart-md.png');
+loader.add('icon4', 'assets/icons/Icon (4).png');
 loader.add('data', 'assets/data.json');
 loader.load((loader, resources) => {
 
@@ -228,8 +229,9 @@ loader.load((loader, resources) => {
 			shape: 'circle',
 			color: randcolor(),
 			//texture: null,
-			texture: resources.bubble.texture,
+			//texture: resources.bubble.texture,
 			//texture: spritesheet.textures.ball_red_large,
+			texture: resources.icon4.texture,
 			interpolation: interpolation,
 			drawlines: drawLines,
 			nodeattr: a

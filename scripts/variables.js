@@ -22,7 +22,7 @@ const worldW = 1280;
 const worldH = 720;
 const maxRNode = 120;
 const minRNode = 20;
-const maxREdge = 20;
+const maxREdge = 40;
 const minREdge = 2;
 
 const modifyPhysicsSteps = (v) => {
