@@ -230,8 +230,8 @@ loader.load((loader, resources) => {
 			color: randcolor(),
 			//texture: null,
 			//texture: resources.bubble.texture,
-			//texture: spritesheet.textures.ball_red_large,
-			texture: resources.icon4.texture,
+			texture: spritesheet.textures.particle_3,
+			//texture: resources.icon4.texture,
 			interpolation: interpolation,
 			drawlines: drawLines,
 			nodeattr: a
