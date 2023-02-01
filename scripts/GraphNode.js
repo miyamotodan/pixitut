@@ -18,8 +18,11 @@ export class GraphNode {
 		this.type = opts.type, //static , dynamic
 
 		// If no texture is supplied we become a solid shape.
-		this.sprite = opts.texture == null ?  new Graphics() : new Sprite(opts.texture);
-        this.spriteLayer = opts.spritelayer;
+		//this.sprite = opts.texture == null ?  new Graphics() : new Sprite(opts.texture);
+		this.shapeType = opts.shape;
+
+        this.setSprite(opts.texture);
+		this.spriteLayer = opts.spritelayer;
 		this.viewport = opts.viewport;
 		this.debug = new Graphics();
 		this.debugLayer = opts.debuglayer;
@@ -30,56 +33,16 @@ export class GraphNode {
 		this.clicked=false;
 		this.dragged=false;
 		this.state = { x: opts.position.x, y: opts.position.y, angle: opts.angle};
-		
 		this.container = new Container();
-		this.shapeType = opts.shape;
-
         this.interpolation = opts.interpolation;    
         this.setInterpolation = (v) => this.interpolation = v;
 
         this.drawLines = opts.drawlines;            
-        this.setDrawLines = (v) => this.drawLines = v;
+        this.setDrawLines = (v) => this.drawLines = v;	
 
-		if (this.shapeType == 'box') {
-			if (this.sprite instanceof Sprite == false) {
-				this.sprite.beginFill(opts.color, 1);
-				this.polygon = new Polygon([new Point(-opts.radius/2,-opts.radius/2),new Point(-opts.radius/2, opts.radius/2), new Point(opts.radius/2,opts.radius/2), new Point(opts.radius/2,-opts.radius/2)])
-				this.sprite.drawPolygon(this.polygon);
-				this.sprite.endFill();
-			}
-		}
-		else if (this.shapeType == 'triangle' || this.shapeType == 'box') {
-			if (this.sprite instanceof Sprite == false) {
-				this.sprite.beginFill(opts.color, 1);
-				this.polygon = new Polygon([new Point(-opts.radius, 0), new Point(0, opts.radius), new Point(opts.radius, 0)]);
-				this.sprite.drawPolygon(this.polygon);
-				this.sprite.endFill();
-				//this.sprite.pivot.x = this.sprite.width / 2;
-				//this.sprite.pivot.y = this.sprite.height / 2;
-			}
-		}
-		else if (this.shapeType == 'circle') {
-			if (this.sprite instanceof Sprite == false) {
-				this.sprite.beginFill(opts.color, 1);
-				this.sprite.drawCircle(0, 0, opts.radius);
-				this.sprite.endFill();
-			}
-		} else throw ("Unsupported physics shape!");
-		
 		// For interpolation, we need to know our Body's previous physics state.
 		this.previousState = this.state;
 	
-		// If a texture is present, we need to center our origin
-		if (this.sprite instanceof Sprite) {
-			this.sprite.pivot.x = this.sprite.width / 2;
-			this.sprite.pivot.y = this.sprite.height / 2;
-			
-			//sprite inscritto nel cerchio
-			//this.sprite.scale.set(opts.radius*Math.sqrt(2)/this.sprite.width, opts.radius*Math.sqrt(2)/this.sprite.height);
-			//sprite circoscritto nel cerchio
-			this.sprite.scale.set(2*opts.radius/this.sprite.width, 2*opts.radius/this.sprite.height);
-			
-		}
 		// Container is our main interface to PIXI.
 		this.container.pivot.x = this.container.width / 2;
 		this.container.pivot.y = this.container.height / 2;
@@ -130,7 +93,7 @@ export class GraphNode {
 		this.clicked = false;
 		this.dragged = false;
 		
-		//assegno al nodo de grafo le coordinate in cui è stato draggato
+		//assegno al nodo del grafo le coordinate in cui è stato draggato
 		this.graph.setNodeAttribute(this.nodeAttr.id,"x",this.state.x);
 		this.graph.setNodeAttribute(this.nodeAttr.id,"y",this.state.y);
 		
@@ -185,5 +148,47 @@ export class GraphNode {
 		this.container.destroy({ children: true });
 		this.debug.destroy();
 		this.label.destroy();
+	}
+	setSprite(texture) {
+		this.sprite = texture == null ?  new Graphics() : new Sprite(texture);
+
+		if (this.shapeType == 'box') {
+			if (this.sprite instanceof Sprite == false) {
+				this.sprite.beginFill(opts.color, 1);
+				this.polygon = new Polygon([new Point(-opts.radius/2,-opts.radius/2),new Point(-opts.radius/2, opts.radius/2), new Point(opts.radius/2,opts.radius/2), new Point(opts.radius/2,-opts.radius/2)])
+				this.sprite.drawPolygon(this.polygon);
+				this.sprite.endFill();
+			}
+		}
+		else if (this.shapeType == 'triangle' || this.shapeType == 'box') {
+			if (this.sprite instanceof Sprite == false) {
+				this.sprite.beginFill(opts.color, 1);
+				this.polygon = new Polygon([new Point(-opts.radius, 0), new Point(0, opts.radius), new Point(opts.radius, 0)]);
+				this.sprite.drawPolygon(this.polygon);
+				this.sprite.endFill();
+				//this.sprite.pivot.x = this.sprite.width / 2;
+				//this.sprite.pivot.y = this.sprite.height / 2;
+			}
+		}
+		else if (this.shapeType == 'circle') {
+			if (this.sprite instanceof Sprite == false) {
+				this.sprite.beginFill(opts.color, 1);
+				this.sprite.drawCircle(0, 0, opts.radius);
+				this.sprite.endFill();
+			}
+		} else throw ("Unsupported physics shape!");
+		
+		// If a texture is present, we need to center our origin
+		if (this.sprite instanceof Sprite) {
+			this.sprite.pivot.x = this.sprite.width / 2;
+			this.sprite.pivot.y = this.sprite.height / 2;
+			
+			//sprite inscritto nel cerchio
+			//this.sprite.scale.set(opts.radius*Math.sqrt(2)/this.sprite.width, opts.radius*Math.sqrt(2)/this.sprite.height);
+			//sprite circoscritto nel cerchio
+			this.sprite.scale.set(2*this.radius/this.sprite.width, 2*this.radius/this.sprite.height);
+			
+		}
+		
 	}
 }
